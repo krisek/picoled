@@ -1,0 +1,124 @@
+<!DOCTYPE html>
+<html>
+<head>
+ <title>Pico W - ledcontrol</title>
+<style>
+
+body {
+  font-size: 2em;
+  font-family: sans-serif;
+/*   background: rgb(226, 220, 198);*/
+  background: #FCFCFC;
+  line-height: 2.5;
+}
+
+@media only screen and (max-width: 500px) {
+  body {
+      font-size: 2em;
+  }
+  .styled {
+      font-size: 2rem;
+  }
+}
+
+.styled {
+border: 0;
+line-height: 2.5;
+padding: 0 20px;
+font-size: 1.5rem;
+text-align: center;
+color: #CDCDCF;
+text-shadow: 1px 1px 1px #000;
+border-radius: 10px;
+background-color: rgba(247, 241, 229, 1);
+background-image: linear-gradient(to top left,
+                                  rgba(0, 0, 0, .2),
+                                  rgba(0, 0, 0, .2) 30%,
+                                  rgba(0, 0, 0, 0));
+box-shadow: inset 2px 2px 3px rgba(255, 255, 255, .6),
+            inset -2px -2px 3px rgba(0, 0, 0, .6);
+}
+
+.styled:hover {
+  background-color: rgba(247, 241, 229, 1);
+}
+
+.styled:active {
+  box-shadow: inset -2px -2px 3px rgba(255, 255, 255, .6),
+              inset 2px 2px 3px rgba(0, 0, 0, .6);
+}
+
+</style>
+<script>  
+/* AJAX stuff to generate playlists on server*/
+function createRequestObject() {
+  var ro;
+  ro = new XMLHttpRequest();
+  return ro;
+}
+
+var http = createRequestObject();
+
+  var state = {
+      'red': 0,
+      'green': 0,
+      'blue': 0,
+      'temperature': 0
+  };
+
+  function setColor() {
+      red = document.getElementById('red').value;
+      green = document.getElementById('green').value;
+      blue = document.getElementById('blue').value;
+      console.log('setColor called ' + red + ' ' + green + ' ' + blue);
+      
+      http.open('get', '/set?red=' + red + '&green=' + green + '&blue=' + blue);
+      http.onreadystatechange = handleResponse;
+      http.send(null);
+  }
+
+  function getColor() {
+
+      console.log('getColor called ');
+      
+      http.open('get', '/get');
+      http.onreadystatechange = handleResponse;
+      http.send(null);
+  }
+
+  
+  function handleResponse() {
+     //alert('got glint 2 ' + http.readyState + '  ' + http.responseText);
+      if(http.readyState == 4){
+          var response = http.responseText;
+          var mapData = JSON.parse(response);
+          console.log(mapData)
+          document.getElementById('red').value = mapData['red'];
+          document.getElementById('green').value = mapData['green']
+          document.getElementById('blue').value = mapData['blue']
+          for (let key in mapData) {
+            document.getElementById('span_' + key).innerHTML = mapData[key];
+          } 
+      }
+  }
+
+  
+</script>
+</head>
+
+<body onLoad="getColor();">
+
+<h1>Pico W</h1>
+<p>onboard LED &nbsp;
+<a href="?led=on"><button>ON</button></a>&nbsp;
+<a href="?led=off"><button>OFF</button></a>
+</p>
+<p>board temperature: <span id="span_temperature"></span></p>
+<p>
+    red: <input type="range" value="{{red}}" name="red" id="red" size=1 min="0" max="255" onChange='setColor();'/> <span id="span_red"></span><br/>
+    green: <input type="range" value="{{green}}" name="green" id="green" size=2   min="0" max="255" onChange='setColor();'/> <span id="span_green"></span><br/>
+    blue: <input type="range" value="{{blue}}" name="blue" size=2 id="blue" min="0" max="255" onChange='setColor();'/> <span id="span_blue"></span><br/>
+</p>
+</body>
+</html>
+
